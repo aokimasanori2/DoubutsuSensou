@@ -10,6 +10,7 @@ import com.aokimasanori.doubutsusensou.ui.theme.DoubutsuSensouTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (android.os.Build.VERSION.SDK_INT >= 33) setRecentsScreenshotEnabled(false)
         enableEdgeToEdge()
         setContent {
             DoubutsuSensouTheme { DoubutsuSensouApp() }

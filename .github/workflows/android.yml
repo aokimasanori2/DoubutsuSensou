@@ -74,7 +74,7 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
           {
             git log -1 --pretty=%s
-            echo "どうぶつ戦争 0.1.0 / build $APP_VERSION_CODE"
+            echo "どうぶつ戦争 / build $APP_VERSION_CODE"
             echo "commit ${GITHUB_SHA::7}"
           } > "$RUNNER_TEMP/release-notes.txt"
           npx --yes firebase-tools@15 appdistribution:distribute \
