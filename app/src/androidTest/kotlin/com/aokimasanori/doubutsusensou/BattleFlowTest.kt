@@ -4,11 +4,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.SavedStateHandle
+import androidx.test.platform.app.InstrumentationRegistry
 import com.aokimasanori.doubutsusensou.game.*
 import com.aokimasanori.doubutsusensou.ui.*
 import com.aokimasanori.doubutsusensou.ui.theme.DoubutsuSensouTheme
 import org.junit.Rule
 import org.junit.Test
+import java.io.FileInputStream
 
 class BattleFlowTest {
     @get:Rule val composeRule = createAndroidComposeRule<MainActivity>()
@@ -29,6 +31,9 @@ class BattleFlowTest {
     @Test fun battleResultAndNextTurnKeepEnemyIdentityPrivate() {
         start(0 to Cell(5, 2), 14 to Cell(5, 3), 6 to Cell(4, 1))
         composeRule.onNodeWithTag("cell_5_3").assertContentDescriptionEquals("6だん 4れつ ？")
+        InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(
+            "screencap -p /data/local/tmp/doubutsu-battle.png",
+        ).use { FileInputStream(it.fileDescriptor).use { output -> output.readBytes() } }
         composeRule.onNodeWithTag("cell_5_2").performScrollTo().performClick()
         composeRule.onNodeWithTag("cell_5_3").performScrollTo().performClick()
         composeRule.onNodeWithTag("turn_result").performScrollTo().assertIsDisplayed()

@@ -81,7 +81,9 @@ APKは `app/build/outputs/apk/debug/app-debug.apk` に生成されます。
 .\gradlew.bat :app:connectedDebugAndroidTest
 ```
 
-GitHub ActionsでもAPK生成・単体テスト・Lintを実行し、デバッグAPKを成果物として保存します。
+GitHub ActionsでもAPK生成・単体テスト・Lintに加え、Android 15のエミュレーターで画面操作テストを実行します。
+画面テストを含む全検証が成功した場合だけFirebaseへ配布し、テストレポートと画面画像も成果物に保存します。
+エミュレーターは [Android Emulator Runner](https://github.com/ReactiveCircus/android-emulator-runner) を使用します。
 
 ## Pixel 10へのFirebase配布
 
