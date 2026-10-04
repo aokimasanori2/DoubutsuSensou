@@ -37,24 +37,20 @@ fun InitialSetupScreen(
             Spacer(Modifier.height(24.dp))
             Text(
                 when {
-                    game.phase == GamePhase.READY -> "ふたりの じゅんびが できたよ！"
                     state.privacyCovered -> "${game.setupPlayer.teamName()}の じゅんび"
                     else -> "${game.setupPlayer.teamName()}に\nスマホを わたしてね"
                 },
-                Modifier.testTag(if (game.phase == GamePhase.READY) "setup_complete" else "handoff"),
+                Modifier.testTag("handoff"),
                 textAlign = TextAlign.Center, style = MaterialTheme.typography.headlineSmall,
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                if (game.phase == GamePhase.READY) "今回あそべるのは こまを ならべるところまで。\nどうぶつを うごかす あそびは、次の更新で ふえるよ。"
-                else "あいては がめんを みないでね。",
+                "あいては がめんを みないでね。",
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(24.dp))
-            if (game.phase != GamePhase.READY) {
-                Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().testTag("accept_handoff")) {
-                    Text("じゅんびOK！", Modifier.padding(10.dp))
-                }
+            Button(onClick = onContinue, modifier = Modifier.fillMaxWidth().testTag("accept_handoff")) {
+                Text("じゅんびOK！", Modifier.padding(10.dp))
             }
             OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth().testTag("back_to_title")) {
                 Text("タイトルへ もどる", Modifier.padding(8.dp))

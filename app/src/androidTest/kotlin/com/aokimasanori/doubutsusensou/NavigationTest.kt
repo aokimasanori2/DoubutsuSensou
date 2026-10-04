@@ -31,8 +31,11 @@ class NavigationTest {
             composeRule.onNodeWithTag("cell_${6 + i / 6}_${i % 6}").performScrollTo().performClick()
         }
         composeRule.onNodeWithTag("confirm_placement").performClick()
-        composeRule.onNodeWithTag("setup_complete").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("turn_handoff").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("board").assertDoesNotExist()
+        composeRule.onNodeWithTag("accept_handoff").performScrollTo().performClick()
+        composeRule.onNodeWithTag("turn_title").assertIsDisplayed()
+        composeRule.onNodeWithTag("cell_6_0").assertContentDescriptionEquals("7だん 1れつ ？")
     }
 
     @Test

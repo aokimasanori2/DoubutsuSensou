@@ -1,7 +1,12 @@
 package com.aokimasanori.doubutsusensou.game
 
-enum class Player { ONE, TWO }
-enum class GamePhase { INITIAL_PLACEMENT, HANDOFF, READY }
+enum class Player {
+    ONE, TWO;
+    fun opponent() = if (this == ONE) TWO else ONE
+}
+enum class GamePhase { INITIAL_PLACEMENT, HANDOFF, READY, TURN_HANDOFF, PLAYING, TURN_RESULT, FINISHED }
+enum class WinReason { HOME, NO_ANIMALS, DRAW }
+data class GameOutcome(val winner: Player?, val reason: WinReason)
 enum class PieceKind { LION, TIGER, CHEETAH, FOX, RABBIT, BIRD, MOLE, PIT }
 
 data class Piece(val id: Int, val owner: Player, val kind: PieceKind)
@@ -23,7 +28,12 @@ data class GameState(
     val phase: GamePhase = GamePhase.INITIAL_PLACEMENT,
     val setupPlayer: Player = Player.ONE,
     val placements: Map<Int, Cell> = emptyMap(),
+    val activePlayer: Player = Player.ONE,
+    val turnNumber: Int = 1,
+    val outcome: GameOutcome? = null,
 ) {
+    val viewingPlayer: Player get() =
+        if (phase in setOf(GamePhase.INITIAL_PLACEMENT, GamePhase.HANDOFF)) setupPlayer else activePlayer
     fun placedCount(player: Player) = Pieces.forPlayer(player).count { it.id in placements }
     fun pieceAt(cell: Cell): Piece? = placements.entries
         .firstOrNull { it.value == Board.canonical(cell) }?.key?.let(Pieces::find)

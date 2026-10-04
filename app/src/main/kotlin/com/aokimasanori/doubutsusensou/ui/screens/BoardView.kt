@@ -20,15 +20,18 @@ import com.aokimasanori.doubutsusensou.game.*
 @Composable
 fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit) {
     val engine = GameEngine()
+    val preparing = game.phase == GamePhase.INITIAL_PLACEMENT
+    val destinations = if (!preparing && selected != null) Movement.destinations(game, selected) else emptySet()
     Column(Modifier.fillMaxWidth().testTag("board")) {
         repeat(Board.ROWS) { row ->
-            Row(Modifier.fillMaxWidth().height(51.dp)) {
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                 Board.cells.filter { it.row == row }.forEach { cell ->
                     val terrain = Board.terrain(cell)
                     val piece = game.pieceAt(cell)
-                    val own = piece?.owner == game.setupPlayer
+                    val own = piece?.owner == game.viewingPlayer
                     val selectedPiece = selected?.let(Pieces::find)
-                    val allowed = selectedPiece != null && engine.placementError(selectedPiece, cell) == null
+                    val allowed = if (preparing) selectedPiece != null && engine.placementError(selectedPiece, cell) == null
+                        else cell in destinations
                     val selectedHere = selected != null && selected == piece?.id
                     val label = if (piece == null) "" else if (own) piece.kind.label() else "？"
                     val home = terrain == Terrain.HOME
@@ -42,11 +45,12 @@ fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit) {
                         Terrain.HOME -> Color(0xFFFFEDC9)
                     }
                     Column(
-                        Modifier.weight(Board.span(cell).toFloat()).fillMaxHeight()
+                        Modifier.weight(Board.span(cell).toFloat()).heightIn(min = 51.dp).fillMaxHeight()
                             .background(background)
-                            .border(if (selectedHere) 3.dp else 1.dp,
-                                if (selectedHere) Color(0xFF314D27) else Color(0xFF9FAD8B))
-                            .clickable(enabled = Board.territory(cell) == game.setupPlayer) { onCell(cell) }
+                            .border(if (selectedHere || allowed) 3.dp else 1.dp,
+                                if (selectedHere) Color(0xFF314D27) else if (allowed) Color(0xFF608F49) else Color(0xFF9FAD8B))
+                            .clickable(enabled = if (preparing) Board.territory(cell) == game.setupPlayer
+                                else game.phase == GamePhase.PLAYING && terrain != Terrain.RIVER) { onCell(cell) }
                             .testTag("cell_${row}_${cell.column}")
                             .semantics(mergeDescendants = true) { contentDescription = cellDescription },
                         horizontalAlignment = Alignment.CenterHorizontally,

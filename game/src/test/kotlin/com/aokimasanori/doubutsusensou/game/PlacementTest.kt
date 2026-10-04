@@ -77,7 +77,7 @@ class PlacementTest {
         assertEquals(GamePhase.INITIAL_PLACEMENT, game.phase)
         assertEquals(10, game.placedCount(Player.ONE))
         game = engine.confirm(fill(game))
-        assertEquals(GamePhase.READY, game.phase)
+        assertEquals(GamePhase.TURN_HANDOFF, game.phase)
         assertEquals(20, game.placements.size)
         assertEquals(20, game.placements.values.toSet().size)
         assertEquals(game, engine.place(game, 10, Cell(7, 0)).state)

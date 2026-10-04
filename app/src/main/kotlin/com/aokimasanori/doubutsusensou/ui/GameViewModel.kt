@@ -15,6 +15,7 @@ data class AppUiState(
     val selectedPieceId: Int? = null,
     val error: PlacementError? = null,
     val privacyCovered: Boolean = false,
+    val invalidMove: Boolean = false,
 )
 
 class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
@@ -25,29 +26,41 @@ class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     private fun restore(): AppUiState {
         if (savedStateHandle.get<String>("screen") != AppScreen.INITIAL_SETUP.name) return AppUiState()
         val positions = savedStateHandle.get<IntArray>("positions") ?: IntArray(20) { -1 }
-        var game = engine.newGame()
-        // Replay through the domain validator; never restore invalid placements.
-        for (player in Player.entries) {
-            game = game.copy(setupPlayer = player)
-            for (piece in Pieces.forPlayer(player)) {
-                val encoded = positions.getOrNull(piece.id) ?: -1
-                if (encoded in 0 until Board.ROWS * Board.COLUMNS) {
-                    val cell = Cell(encoded / Board.COLUMNS, encoded % Board.COLUMNS)
-                    if (game.pieceAt(cell) == null) game = engine.place(game, piece.id, cell).state
-                }
-            }
+        val phase = (GamePhase.entries.find { it.name == savedStateHandle.get<String>("phase") }
+            ?: GamePhase.INITIAL_PLACEMENT).let { if (it == GamePhase.READY) GamePhase.TURN_HANDOFF else it }
+        val setup = phase in setOf(GamePhase.INITIAL_PLACEMENT, GamePhase.HANDOFF)
+        val placements = mutableMapOf<Int, Cell>()
+        for (piece in Pieces.all) {
+            val encoded = positions.getOrNull(piece.id) ?: -1
+            if (encoded == -1) continue
+            if (encoded !in 0 until Board.ROWS * Board.COLUMNS) return AppUiState()
+            val cell = Board.canonical(Cell(encoded / Board.COLUMNS, encoded % Board.COLUMNS))
+            if (cell in placements.values || Board.terrain(cell) == Terrain.RIVER ||
+                (piece.kind == PieceKind.BIRD && Board.isHome(cell)) ||
+                ((setup || piece.kind == PieceKind.PIT) && engine.placementError(piece, cell) != null)) return AppUiState()
+            placements[piece.id] = cell
         }
         val player = Player.entries.find { it.name == savedStateHandle.get<String>("player") } ?: Player.ONE
-        val phase = GamePhase.entries.find { it.name == savedStateHandle.get<String>("phase") } ?: GamePhase.INITIAL_PLACEMENT
-        game = game.copy(setupPlayer = player, phase = phase)
+        val active = Player.entries.find { it.name == savedStateHandle.get<String>("activePlayer") } ?: Player.ONE
+        val reason = WinReason.entries.find { it.name == savedStateHandle.get<String>("winReason") }
+        val winner = Player.entries.find { it.name == savedStateHandle.get<String>("winner") }
+        if (phase == GamePhase.FINISHED && (reason == null || (winner == null && reason != WinReason.DRAW))) return AppUiState()
+        val game = GameState(phase, player, placements.toMap(), active,
+            (savedStateHandle.get<Int>("turn") ?: 1).coerceAtLeast(1),
+            if (reason == null) null else GameOutcome(winner, reason))
         return AppUiState(AppScreen.INITIAL_SETUP, game,
-            privacyCovered = game.placements.isNotEmpty() && phase == GamePhase.INITIAL_PLACEMENT)
+            privacyCovered = game.placements.isNotEmpty() &&
+                phase in setOf(GamePhase.INITIAL_PLACEMENT, GamePhase.PLAYING, GamePhase.TURN_RESULT))
     }
 
     private fun update(state: AppUiState) {
         savedStateHandle["screen"] = state.screen.name
         savedStateHandle["player"] = state.game?.setupPlayer?.name
         savedStateHandle["phase"] = state.game?.phase?.name
+        savedStateHandle["activePlayer"] = state.game?.activePlayer?.name
+        savedStateHandle["turn"] = state.game?.turnNumber
+        savedStateHandle["winner"] = state.game?.outcome?.winner?.name
+        savedStateHandle["winReason"] = state.game?.outcome?.reason?.name
         savedStateHandle["positions"] = IntArray(20) { id ->
             state.game?.placements?.get(id)?.let { it.row * Board.COLUMNS + it.column } ?: -1
         }
@@ -60,15 +73,32 @@ class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     fun selectPiece(id: Int) {
         val state = uiState.value
         val game = state.game ?: return
-        if (state.privacyCovered || game.phase != GamePhase.INITIAL_PLACEMENT || Pieces.find(id)?.owner != game.setupPlayer) return
-        update(state.copy(selectedPieceId = if (state.selectedPieceId == id) null else id, error = null))
+        val piece = Pieces.find(id) ?: return
+        if (state.privacyCovered || piece.owner != game.viewingPlayer) return
+        if (game.phase == GamePhase.PLAYING) {
+            if (id !in game.placements || piece.kind == PieceKind.PIT) return
+        } else if (game.phase != GamePhase.INITIAL_PLACEMENT) return
+        update(state.copy(selectedPieceId = if (state.selectedPieceId == id) null else id,
+            error = null, invalidMove = false))
     }
 
     fun tapCell(cell: Cell) {
         val state = uiState.value
         val game = state.game ?: return
-        if (state.privacyCovered || game.phase != GamePhase.INITIAL_PLACEMENT) return
+        if (state.privacyCovered) return
         val selected = state.selectedPieceId
+        if (game.phase == GamePhase.PLAYING) {
+            val ownPiece = game.pieceAt(cell)?.takeIf { it.owner == game.activePlayer }
+            if (ownPiece != null) {
+                selectPiece(ownPiece.id)
+            } else if (selected != null) {
+                val moved = MatchEngine.move(game, selected, cell)
+                update(state.copy(game = moved, selectedPieceId = if (moved != game) null else selected,
+                    invalidMove = moved == game))
+            }
+            return
+        }
+        if (game.phase != GamePhase.INITIAL_PLACEMENT) return
         if (selected == null) {
             game.pieceAt(cell)?.takeIf { it.owner == game.setupPlayer }?.let { selectPiece(it.id) }
         } else {
@@ -99,9 +129,22 @@ class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
         update(state.copy(game = engine.acceptHandoff(game), privacyCovered = false))
     }
 
+    fun endTurn() {
+        val state = uiState.value
+        val game = state.game ?: return
+        if (!state.privacyCovered) update(state.copy(game = MatchEngine.endTurn(game), selectedPieceId = null))
+    }
+
+    fun passTurn() {
+        val state = uiState.value
+        val game = state.game ?: return
+        if (!state.privacyCovered) update(state.copy(game = MatchEngine.pass(game), selectedPieceId = null))
+    }
+
     fun hideForPrivacy() {
         val state = uiState.value
-        if (state.game?.phase == GamePhase.INITIAL_PLACEMENT && state.game.placements.isNotEmpty())
-            update(state.copy(privacyCovered = true, selectedPieceId = null, error = null))
+        if (state.game?.phase in setOf(GamePhase.INITIAL_PLACEMENT, GamePhase.PLAYING, GamePhase.TURN_RESULT) &&
+            state.game?.placements?.isNotEmpty() == true)
+            update(state.copy(privacyCovered = true, selectedPieceId = null, error = null, invalidMove = false))
     }
 }

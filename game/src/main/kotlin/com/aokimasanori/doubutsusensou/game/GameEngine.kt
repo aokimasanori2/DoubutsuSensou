@@ -41,9 +41,13 @@ class GameEngine {
         if (state.phase != GamePhase.INITIAL_PLACEMENT || state.placedCount(state.setupPlayer) != 10) return state
         return if (state.setupPlayer == Player.ONE)
             state.copy(phase = GamePhase.HANDOFF, setupPlayer = Player.TWO)
-        else state.copy(phase = GamePhase.READY)
+        else state.copy(phase = GamePhase.TURN_HANDOFF, activePlayer = Player.ONE)
     }
 
     fun acceptHandoff(state: GameState): GameState =
-        if (state.phase == GamePhase.HANDOFF) state.copy(phase = GamePhase.INITIAL_PLACEMENT) else state
+        when (state.phase) {
+            GamePhase.HANDOFF -> state.copy(phase = GamePhase.INITIAL_PLACEMENT)
+            GamePhase.TURN_HANDOFF, GamePhase.READY -> state.copy(phase = GamePhase.PLAYING)
+            else -> state
+        }
 }
