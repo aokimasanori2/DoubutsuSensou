@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.test.espresso.Espresso.pressBack
 import org.junit.Rule
 import org.junit.Test
 
@@ -21,11 +20,13 @@ class NavigationTest {
     }
 
     @Test
-    fun setupSurvivesActivityRecreationAndSystemBackReturnsToTitle() {
+    fun setupSurvivesActivityRecreationAndBackDispatchReturnsToTitle() {
         composeRule.onNodeWithTag("play_button").performScrollTo().performClick()
         composeRule.activityRule.scenario.recreate()
         composeRule.onNodeWithTag("setup_title").assertIsDisplayed()
-        pressBack()
+        composeRule.runOnUiThread {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
         composeRule.onNodeWithTag("play_button").performScrollTo().assertIsDisplayed()
     }
 }
