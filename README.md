@@ -72,6 +72,28 @@ APKは `app/build/outputs/apk/debug/app-debug.apk` に生成されます。
 
 GitHub ActionsでもAPK生成・単体テスト・Lintを実行し、デバッグAPKを成果物として保存します。
 
+## Pixel 10へのFirebase配布
+
+Firebaseプロジェクト `kyukabomanager` に、既存アプリとは別のAndroidアプリとして登録しています。
+App IDは `1:34404720470:android:65e0010cc99f3189a080f7` です。
+`main` への更新と、`main` からのActions手動実行で、テスト・Lint・ビルドの成功後に
+`aokimasanori@gmail.com` へFirebase App Distributionで配布します。
+Pixel 10でそのアカウントのFirebase App Testerを開き、「どうぶつ戦争」をインストールしてください。
+プルリクエストの検証では配布しません。
+
+上書きインストールのため、配布版は固定のテスト署名鍵を使います。
+ビルド番号は `1000 + GitHub Actionsのrun_number` として増加します。
+以下は、このリポジトリのActions secretsに設定済みです。鍵の内容はソースに含めません。
+
+- `CI_DEBUG_KEYSTORE_BASE64`: どうぶつ戦争専用のテスト署名鍵
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: 既存Firebaseプロジェクトの配布用認証
+
+ローカルの通常ビルドは、そのPCのデバッグ署名鍵と `versionCode=1` を使います。
+配布版と同じ鍵でローカルビルドする場合は `CI_DEBUG_KEYSTORE` に専用鍵のパスを指定し、
+`APP_VERSION_CODE` にインストール済み版以上のビルド番号を指定してください。
+配布機能だけを利用するため、アプリ内へのFirebase SDK追加は不要です。
+[Firebaseの公式配布手順](https://firebase.google.com/docs/app-distribution/android/distribute-cli)。
+
 ## 次の段階
 
 1. 確定したルールに合わせて盤面と駒のモデルを追加する。

@@ -11,9 +11,21 @@ android {
         applicationId = "com.aokimasanori.doubutsusensou"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        versionCode = providers.environmentVariable("APP_VERSION_CODE").orNull?.toInt() ?: 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // A private, fixed test key allows Firebase builds to update an installed app.
+    signingConfigs {
+        getByName("debug") {
+            providers.environmentVariable("CI_DEBUG_KEYSTORE").orNull?.let { keyPath ->
+                storeFile = file(keyPath)
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
     }
 
     buildFeatures { compose = true }
@@ -38,7 +50,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
