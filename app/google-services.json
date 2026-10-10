@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "276973560228",
+    "project_id": "doubutsusensou-online",
+    "storage_bucket": "doubutsusensou-online.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276973560228:android:2f0c75c169b8bec99be131",
+        "android_client_info": {
+          "package_name": "com.aokimasanori.doubutsusensou"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDD92JQxjjQExIfkpcmxBNOoAzw8glShzc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

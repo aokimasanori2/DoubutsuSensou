@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.sp
 import com.aokimasanori.doubutsusensou.game.*
 
 @Composable
-fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit) {
+fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit,
+    viewer: Player = game.viewingPlayer, interactionEnabled: Boolean = true) {
     val engine = GameEngine()
     val preparing = game.phase == GamePhase.INITIAL_PLACEMENT
     val destinations = if (!preparing && selected != null) Movement.destinations(game, selected) else emptySet()
@@ -28,7 +29,7 @@ fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit) {
                 Board.cells.filter { it.row == row }.forEach { cell ->
                     val terrain = Board.terrain(cell)
                     val piece = game.pieceAt(cell)
-                    val own = piece?.owner == game.viewingPlayer
+                    val own = piece?.owner == viewer
                     val selectedPiece = selected?.let(Pieces::find)
                     val allowed = if (preparing) selectedPiece != null && engine.placementError(selectedPiece, cell) == null
                         else cell in destinations
@@ -49,8 +50,8 @@ fun BoardView(game: GameState, selected: Int?, onCell: (Cell) -> Unit) {
                             .background(background)
                             .border(if (selectedHere || allowed) 3.dp else 1.dp,
                                 if (selectedHere) Color(0xFF314D27) else if (allowed) Color(0xFF608F49) else Color(0xFF9FAD8B))
-                            .clickable(enabled = if (preparing) Board.territory(cell) == game.setupPlayer
-                                else game.phase == GamePhase.PLAYING && terrain != Terrain.RIVER) { onCell(cell) }
+                            .clickable(enabled = interactionEnabled && (if (preparing) Board.territory(cell) == game.setupPlayer
+                                else game.phase == GamePhase.PLAYING && terrain != Terrain.RIVER)) { onCell(cell) }
                             .testTag("cell_${row}_${cell.column}")
                             .semantics(mergeDescendants = true) { contentDescription = cellDescription },
                         horizontalAlignment = Alignment.CenterHorizontally,

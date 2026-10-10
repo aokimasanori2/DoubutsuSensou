@@ -22,7 +22,14 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Test multiplayer access and synchronization
+        run: |
+          npm ci --prefix firebase-tests
+          npx --yes firebase-tools@15 emulators:exec --only firestore --project demo-doubutsu-online 'npm --prefix firebase-tests test'
       - uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
@@ -97,5 +104,6 @@ jobs:
           npx --yes firebase-tools@15 appdistribution:distribute \
             app/build/outputs/apk/debug/app-debug.apk \
             --app "$FIREBASE_APP_ID" \
+            --project kyukabomanager \
             --testers "$FIREBASE_TESTERS" \
             --release-notes-file "$RUNNER_TEMP/release-notes.txt"

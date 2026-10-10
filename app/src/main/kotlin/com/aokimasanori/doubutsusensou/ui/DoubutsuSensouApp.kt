@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aokimasanori.doubutsusensou.game.GamePhase
+import com.aokimasanori.doubutsusensou.online.OnlineRoute
 import com.aokimasanori.doubutsusensou.ui.screens.BattleScreen
 import com.aokimasanori.doubutsusensou.ui.screens.InitialSetupScreen
 import com.aokimasanori.doubutsusensou.ui.screens.TitleScreen
@@ -31,7 +32,8 @@ fun DoubutsuSensouApp(gameViewModel: GameViewModel = viewModel()) {
     }
     BackHandler(enabled = state.screen == AppScreen.INITIAL_SETUP, onBack = onBack)
     when (state.screen) {
-        AppScreen.TITLE -> TitleScreen(onPlay = gameViewModel::startNewGame)
+        AppScreen.TITLE -> TitleScreen(onPlay = gameViewModel::startNewGame, onOnline = gameViewModel::openOnline)
+        AppScreen.ONLINE -> OnlineRoute(onBack = gameViewModel::returnToTitle)
         AppScreen.INITIAL_SETUP -> if (state.game?.phase in setOf(GamePhase.INITIAL_PLACEMENT, GamePhase.HANDOFF)) InitialSetupScreen(
             state = state, onSelect = gameViewModel::selectPiece, onCell = gameViewModel::tapCell,
             onRemove = gameViewModel::removeSelected, onConfirm = gameViewModel::confirmPlacement,

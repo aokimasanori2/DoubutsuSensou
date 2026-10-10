@@ -5,8 +5,8 @@
     <string name="title_line_two">戦争</string>
     <string name="title_description">どうぶつたちと、知恵くらべ。</string>
     <string name="play_two_players">ふたりであそぶ</string>
-    <string name="offline_label">ひとつの端末で、交互にあそぶ</string>
-    <string name="offline_detail">2人用・オフライン</string>
+    <string name="offline_label">1だいで交互に、2だいなら通信であそべる</string>
+    <string name="offline_detail">2人用のボードゲーム</string>
     <string name="setup_title">初期配置</string>
     <string name="setup_description">対戦の前に、どうぶつたちを配置します。</string>
     <string name="player_label">プレイヤー %1$d</string>

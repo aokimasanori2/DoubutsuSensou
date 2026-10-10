@@ -29,6 +29,7 @@ fun InitialSetupScreen(
     onConfirm: () -> Unit,
     onContinue: () -> Unit,
     onBack: () -> Unit,
+    confirmEnabled: Boolean = true,
 ) {
     val game = requireNotNull(state.game)
     if (game.phase != GamePhase.INITIAL_PLACEMENT || state.privacyCovered) {
@@ -63,7 +64,7 @@ fun InitialSetupScreen(
             Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedButton(onClick = onBack, modifier = Modifier.testTag("back_to_title")) { Text("もどる") }
-                Button(onClick = onConfirm, enabled = game.placedCount(game.setupPlayer) == 10,
+                Button(onClick = onConfirm, enabled = confirmEnabled && game.placedCount(game.setupPlayer) == 10,
                     modifier = Modifier.weight(1f).testTag("confirm_placement")) {
                     Text("これでOK！  ${game.placedCount(game.setupPlayer)}/10", Modifier.padding(vertical = 6.dp))
                 }

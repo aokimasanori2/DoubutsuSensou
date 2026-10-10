@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,7 +22,7 @@ import com.aokimasanori.doubutsusensou.R
 import com.aokimasanori.doubutsusensou.ui.theme.DoubutsuSensouTheme
 
 @Composable
-fun TitleScreen(onPlay: () -> Unit) {
+fun TitleScreen(onPlay: () -> Unit, onOnline: () -> Unit = {}) {
     ScreenLayout {
         Spacer(Modifier.height(20.dp))
         Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = RoundedCornerShape(50)) {
@@ -36,6 +37,12 @@ fun TitleScreen(onPlay: () -> Unit) {
         Text(stringResource(R.string.title_line_two), style = MaterialTheme.typography.displayLarge,
             fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(16.dp))
+        OutlinedButton(onClick = onOnline, modifier = Modifier.fillMaxWidth().testTag("online_button"),
+            shape = RoundedCornerShape(20.dp)) {
+            Text("2だいで つうしんたいせん", Modifier.padding(vertical = 10.dp),
+                style = MaterialTheme.typography.titleMedium)
+        }
+        Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.title_description), style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center)
         Spacer(Modifier.height(48.dp))

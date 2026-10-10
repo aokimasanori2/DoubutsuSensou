@@ -5,7 +5,7 @@ enum class Player {
     fun opponent() = if (this == ONE) TWO else ONE
 }
 enum class GamePhase { INITIAL_PLACEMENT, HANDOFF, READY, TURN_HANDOFF, PLAYING, TURN_RESULT, FINISHED }
-enum class WinReason { HOME, NO_ANIMALS, DRAW }
+enum class WinReason { HOME, NO_ANIMALS, DRAW, RESIGNED }
 data class GameOutcome(val winner: Player?, val reason: WinReason)
 enum class PieceKind { LION, TIGER, CHEETAH, FOX, RABBIT, BIRD, MOLE, PIT }
 

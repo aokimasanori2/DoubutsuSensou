@@ -33,6 +33,7 @@ fun BattleScreen(
                 WinReason.HOME -> "どうぶつが おうちに かえったよ！"
                 WinReason.NO_ANIMALS -> "あいての うごける どうぶつが\nいなくなったよ。"
                 WinReason.DRAW -> "ふたりとも よく がんばったね！"
+                WinReason.RESIGNED -> "あいてが たいせんを おわりました。"
             }, textAlign = TextAlign.Center)
             Spacer(Modifier.height(24.dp))
             Button(onClick = onRestart, modifier = Modifier.fillMaxWidth().testTag("play_again")) {
@@ -102,8 +103,13 @@ fun BattleScreen(
                 textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall)
         }
     }
-    if (showRules) AlertDialog(
-        onDismissRequest = { showRules = false },
+    if (showRules) GameRulesDialog { showRules = false }
+}
+
+@Composable
+fun GameRulesDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
         title = { Text("あそびかた") },
         text = {
             Text(
@@ -118,6 +124,6 @@ fun BattleScreen(
                 Modifier.verticalScroll(rememberScrollState()),
             )
         },
-        confirmButton = { TextButton(onClick = { showRules = false }) { Text("わかった！") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("わかった！") } },
     )
 }

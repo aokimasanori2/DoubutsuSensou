@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class AppScreen { TITLE, INITIAL_SETUP }
+enum class AppScreen { TITLE, INITIAL_SETUP, ONLINE }
 
 data class AppUiState(
     val screen: AppScreen = AppScreen.TITLE,
@@ -24,6 +24,7 @@ class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     val uiState: StateFlow<AppUiState> = mutableUiState.asStateFlow()
 
     private fun restore(): AppUiState {
+        if (savedStateHandle.get<String>("screen") == AppScreen.ONLINE.name) return AppUiState(screen = AppScreen.ONLINE)
         if (savedStateHandle.get<String>("screen") != AppScreen.INITIAL_SETUP.name) return AppUiState()
         val positions = savedStateHandle.get<IntArray>("positions") ?: IntArray(20) { -1 }
         val phase = (GamePhase.entries.find { it.name == savedStateHandle.get<String>("phase") }
@@ -68,6 +69,7 @@ class GameViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
     }
 
     fun startNewGame() = update(AppUiState(AppScreen.INITIAL_SETUP, engine.newGame()))
+    fun openOnline() = update(AppUiState(screen = AppScreen.ONLINE))
     fun returnToTitle() = update(AppUiState())
 
     fun selectPiece(id: Int) {
